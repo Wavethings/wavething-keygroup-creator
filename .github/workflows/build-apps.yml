@@ -1,0 +1,58 @@
+name: build desktop apps
+
+# Builds the standalone macOS .app and Windows .exe on GitHub's own machines (real macOS and real
+# Windows, nothing is cross-compiled). Runs whenever a GitHub Release is published and attaches the
+# two .zip files to it. Can also be started by hand from the Actions tab ("Run workflow") to test a
+# build without publishing; then the files appear under "Artifacts" of that run.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m unittest discover -s tests
+      - run: pip install -r requirements-desktop.txt pyinstaller
+      - run: python3 scripts/make_desktop_icons.py
+      - run: pyinstaller desktop/keygroup_creator.spec --noconfirm
+      - name: Zip the .app (keeps the macOS bundle intact)
+        run: ditto -c -k --sequesterRsrc --keepParent "dist/Wavethings Keygroup Creator.app" Wavethings-Keygroup-Creator-macOS.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wavethings-Keygroup-Creator-macOS
+          path: Wavethings-Keygroup-Creator-macOS.zip
+      - if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Wavethings-Keygroup-Creator-macOS.zip
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests
+      - run: pip install -r requirements-desktop.txt pyinstaller
+      - run: python scripts/make_desktop_icons.py
+      - run: pyinstaller desktop/keygroup_creator.spec --noconfirm
+      - name: Zip the app folder
+        run: Compress-Archive -Path "dist/Wavethings Keygroup Creator" -DestinationPath Wavethings-Keygroup-Creator-Windows.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Wavethings-Keygroup-Creator-Windows
+          path: Wavethings-Keygroup-Creator-Windows.zip
+      - if: github.event_name == 'release'
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Wavethings-Keygroup-Creator-Windows.zip

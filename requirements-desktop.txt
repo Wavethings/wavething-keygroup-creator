@@ -1,0 +1,3 @@
+# Only needed to build or run the standalone desktop app (desktop/app.py).
+# The scripts themselves (keygroup_creator_gui.py, mpc_keygroup_creator.py) need nothing.
+pywebview>=5.3,<7

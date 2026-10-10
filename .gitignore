@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+*.app/
+.DS_Store
+# desktop build output
+build/
+dist/
+assets/icon.png
+assets/icon.ico
+assets/icon.icns
