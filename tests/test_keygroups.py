@@ -1,5 +1,6 @@
 import copy
 import json
+import os
 import math
 import struct
 import sys
@@ -274,6 +275,46 @@ class Files(unittest.TestCase):
         h, doc = kc.load_template()
         h2, doc2 = kc.read_xpm(kc.write_xpm(h, doc))
         self.assertEqual((h, doc), (h2, doc2))
+
+
+class EnvelopeCurve(unittest.TestCase):
+    MPC = {0: 0, 10: 2.8, 20: 7.9, 40: 61.8, 60: 485.6, 80: 3820, 100: 30000}   # measured on the MPC
+
+    def test_matches_mpc(self):
+        for v, ms in self.MPC.items():
+            self.assertAlmostEqual(kc.env_ms(v), ms, delta=max(0.06, ms * 0.002))
+
+    def test_inverse(self):
+        for ms in (5, 61.8, 250, 1500, 30000):   # 1 ms is value 0, shown as 0 by the MPC
+            self.assertAlmostEqual(kc.env_ms(kc.env_value(ms)), ms, places=6)
+        self.assertEqual(kc.env_value(0.5), 0)
+
+    def test_cli_times(self):
+        self.assertAlmostEqual(kc.parse_env("485.6ms", "Attack"), 60, delta=0.01)
+        self.assertAlmostEqual(kc.parse_env("3,82s", "Release"), 80, delta=0.02)
+        self.assertEqual(kc.parse_env("90", "Sustain"), 90)
+
+    def test_presets_in_real_times(self):
+        pad = kc.BUILTIN_PRESETS["Pad"]["amp"]
+        self.assertAlmostEqual(kc.env_ms(pad["Attack"]), 600, delta=10)
+        self.assertAlmostEqual(kc.env_ms(pad["Release"]), 1800, delta=30)
+
+    def test_legacy_presets_upgraded(self):
+        with tempfile.TemporaryDirectory() as d:
+            old_home = os.environ.get("HOME")
+            os.environ["HOME"] = d
+            os.environ["XDG_CONFIG_HOME"] = str(Path(d) / ".config")
+            try:
+                mine = copy.deepcopy(kc._LEGACY_BUILTIN["Lead"])
+                mine["amp"]["Attack"] = 33
+                kc.save_presets(dict(kc._LEGACY_BUILTIN, **{"Lead": mine, "Own": {"amp": {}}}))
+                p = kc.load_presets()
+                self.assertEqual(p["Pad"], kc.BUILTIN_PRESETS["Pad"])    # untouched -> new values
+                self.assertEqual(p["Lead"]["amp"]["Attack"], 33)          # edited -> kept
+                self.assertIn("Own", p)
+            finally:
+                os.environ["HOME"] = old_home
+                os.environ.pop("XDG_CONFIG_HOME", None)
 
 
 class Desktop(unittest.TestCase):

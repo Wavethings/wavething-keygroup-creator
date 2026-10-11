@@ -304,10 +304,12 @@ td input.vel{width:58px}
 @media(max-width:900px){.grid2{grid-template-columns:1fr}}
 .card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px}
 .card h3{margin:0 0 8px;font-size:13px;font-weight:600}
-.sl{display:grid;grid-template-columns:110px 1fr 62px;gap:8px;align-items:center;margin:5px 0}
+.sl{display:grid;grid-template-columns:110px 1fr 78px;gap:8px;align-items:center;margin:5px 0}
 .sl label{font-size:12.5px}
 .sl input[type=range]{width:100%;accent-color:var(--acc)}
 .sl input[type=number]{width:62px;padding:3px 5px}
+#velSensN{width:78px;text-align:right}
+.sl input.val{width:78px;padding:3px 6px;text-align:right;font-variant-numeric:tabular-nums}
 svg.env{width:100%;height:90px;display:block;background:#17191d;border-radius:6px;margin-bottom:6px}
 .out{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 #status{font-size:13px}
@@ -410,7 +412,7 @@ svg.env{width:100%;height:90px;display:block;background:#17191d;border-radius:6p
 <div class="btns"><button id="dlgNo" data-t="btn_cancel"></button><button id="dlgOk" class="primary" data-t="btn_ok"></button></div></div></div>
 <script>
 const I18N={en:{
-chk_split:"One program per instrument",btn_ok:"OK",btn_cancel:"Cancel",chk_preview:"Create a preview for the MPC browser ([Previews]/Name.xpm.ogg)",lbl_pvsec:"Seconds",
+chk_split:"One program per instrument",hint_time:"Type a time: 250 ms, 1.5 s (a plain number is ms)",hint_sus:"0–127, as on the MPC",btn_ok:"OK",btn_cancel:"Cancel",chk_preview:"Create a preview for the MPC browser ([Previews]/Name.xpm.ogg)",lbl_pvsec:"Seconds",
 w_preview_failed:"Preview not created ({0})",cur_samples:"Samples of <b>{0}</b> — click an instrument above to see its samples, map and sound.",
 cur_sound:"Sound of <b>{0}</b>",no_preset:"— Template values —",lbl_preset:"Preset",modified:"● modified",btn_save_preset:"Save preset…",btn_ren_preset:"Rename…",btn_del_preset:"Delete",
 btn_apply_all:"Apply to all instruments",btn_restore:"Restore built-in presets",ask_preset:"Preset name (an existing name is overwritten):",ask_rename:"New name for “{0}”:",
@@ -429,7 +431,7 @@ sec_sound:"Envelopes and filter",btn_reset:"Template values",amp_env:"Amp envelo
 Attack:"Attack",Hold:"Hold",Decay:"Decay",Sustain:"Sustain",Release:"Release",velsens:"Velocity → volume",blend:"Filter 1 ↔ 2 mix",f_serial:"Filters in series (default: parallel)",
 hint_blend:"Mix 0 = only filter 1 is heard; 100 = only filter 2 (the MPC default is 50, both at once). In series the sound goes through filter 1 and then filter 2.",
 f_type:"Type",f_index:"Type index",f_other:"Other (type the index)…",cutoff:"Cutoff",resonance:"Resonance",envAmount:"Env amount",keytrack:"Key track",velocity:"Velocity → filter",
-about_vals:"About the values",hint_vals:"Every knob goes 0–100, as on the MPC, and applies to all keygroups of the selected instrument. Presets are starting points: pick one, adjust it and save it with your own name. The time scale of the envelopes (milliseconds) is the MPC's own, so the drawing only shows the shape. Use “Template values” to go back to the template's settings.",
+about_vals:"About the values",hint_vals:"Envelope times are the ones the MPC shows (measured on the MPC: 0 ms to 30 s on an exponential curve); you can type them. Sustain goes 0–127 as on the MPC; the filter knobs 0–100. Everything applies to all keygroups of the selected instrument. Presets are starting points: pick one, adjust it and save it with your own name. The drawing shows the shape, not the real proportions. Use “Template values” to go back to the template's settings.",
 sec_out:"Program",lbl_name:"Name",lbl_output:"Save in",chk_hardlink:"Link samples instead of copying (saves space)",
 lbl_template:"Template",btn_tpl:"Use another .xpm…",btn_builtin:"Built-in",tpl_builtin:"Built-in (MPC 3.9)",
 hint_out:"Same layout the MPC uses: “Name.xpm” goes in the folder you choose, its samples in “Name_[ProgramData]” next to it and the preview in “[Previews]”. Copy them together to your MPC. The preview plays the sample closest to C3 (loudest layer). The names are the ones in the instrument list.",
@@ -439,7 +441,7 @@ w_no_note:"No root note, left out: {0}",w_no_vel:"No velocity in the name, used 
 e_no_samples:"No usable samples (each one needs a root note).",e_too_many_layers:"{0} different velocities: the MPC allows 8 layers at most.",e_too_many_keygroups:"{0} different notes: the MPC allows 128 keygroups at most.",
 ask_path:"Full path:",scanning:"Scanning…",err:"Error: {0}",tpl_bad:"That file is not an MPC 3.x keygroup program"},
 es:{
-chk_split:"Un programa por instrumento",btn_ok:"Aceptar",btn_cancel:"Cancelar",chk_preview:"Crear preescucha para el navegador de la MPC ([Previews]/Nombre.xpm.ogg)",lbl_pvsec:"Segundos",
+chk_split:"Un programa por instrumento",hint_time:"Escribe un tiempo: 250 ms, 1,5 s (un número solo son ms)",hint_sus:"0–127, como en la MPC",btn_ok:"Aceptar",btn_cancel:"Cancelar",chk_preview:"Crear preescucha para el navegador de la MPC ([Previews]/Nombre.xpm.ogg)",lbl_pvsec:"Segundos",
 w_preview_failed:"No se pudo crear la preescucha ({0})",cur_samples:"Samples de <b>{0}</b> — haz clic en un instrumento de la lista para ver sus samples, su mapa y su sonido.",
 cur_sound:"Sonido de <b>{0}</b>",no_preset:"— Valores de la plantilla —",lbl_preset:"Preset",modified:"● modificado",btn_save_preset:"Guardar preset…",btn_ren_preset:"Renombrar…",btn_del_preset:"Borrar",
 btn_apply_all:"Aplicar a todos los instrumentos",btn_restore:"Restaurar presets integrados",ask_preset:"Nombre del preset (si ya existe, se sobrescribe):",ask_rename:"Nuevo nombre para «{0}»:",
@@ -458,7 +460,7 @@ sec_sound:"Envolventes y filtro",btn_reset:"Valores de la plantilla",amp_env:"En
 Attack:"Ataque",Hold:"Hold",Decay:"Decay",Sustain:"Sustain",Release:"Release",velsens:"Velocidad → volumen",blend:"Mezcla filtro 1 ↔ 2",f_serial:"Filtros en serie (por defecto: en paralelo)",
 hint_blend:"Mezcla 0 = solo suena el filtro 1; 100 = solo el filtro 2 (la MPC trae 50, los dos a la vez). En serie el sonido pasa por el filtro 1 y luego por el 2.",
 f_type:"Tipo",f_index:"Índice del tipo",f_other:"Otro (escribe el índice)…",cutoff:"Corte",resonance:"Resonancia",envAmount:"Cantidad de env.",keytrack:"Seguimiento de tecla",velocity:"Velocidad → filtro",
-about_vals:"Sobre los valores",hint_vals:"Todos los controles van de 0 a 100, como en la MPC, y se aplican a todos los keygroups del instrumento seleccionado. Los presets son puntos de partida: elige uno, ajústalo y guárdalo con tu propio nombre. La escala de tiempo de las envolventes (milisegundos) es la de la MPC, así que el dibujo solo muestra la forma. «Valores de la plantilla» vuelve a los ajustes de la plantilla.",
+about_vals:"Sobre los valores",hint_vals:"Los tiempos de las envolventes son los que muestra la MPC (medidos en la MPC: de 0 ms a 30 s con una curva exponencial) y puedes escribirlos. El Sustain va de 0 a 127 como en la MPC; los controles del filtro, de 0 a 100. Todo se aplica a todos los keygroups del instrumento seleccionado. Los presets son puntos de partida: elige uno, ajústalo y guárdalo con tu propio nombre. El dibujo muestra la forma, no las proporciones reales. «Valores de la plantilla» vuelve a los ajustes de la plantilla.",
 sec_out:"Programa",lbl_name:"Nombre",lbl_output:"Guardar en",chk_hardlink:"Enlazar samples en vez de copiar (ahorra espacio)",
 lbl_template:"Plantilla",btn_tpl:"Usar otro .xpm…",btn_builtin:"Integrada",tpl_builtin:"Integrada (MPC 3.9)",
 hint_out:"Igual que la MPC: «Nombre.xpm» va en la carpeta que elijas, sus samples en «Nombre_[ProgramData]», a su lado, y la preescucha en «[Previews]». Cópialos juntos a la MPC. La preescucha suena con el sample más cercano a C3 (la capa más fuerte). Los nombres son los de la lista de instrumentos.",
@@ -502,15 +504,28 @@ function applyLang(){document.documentElement.lang=LANG;
  buildSliders();fillFilterTypes();renderRows();renderMap();tplLabel();renderInst();renderPresetBar()}
 
 /* ---------- sliders ---------- */
-function slider(parent,id,label,get,set){
+/* MPC envelope curve (measured): time = 30000^(value/100) ms; sustain shown 0-127 */
+const LN30K=Math.log(30000);
+const msOf=v=>v<=0?0:Math.exp(Math.min(v,100)/100*LN30K);
+const posOf=ms=>ms<1?0:Math.min(100,100*Math.log(ms)/LN30K);
+const dec=(x,d)=>x.toFixed(d).replace(".",LANG==="es"?",":".");
+function fmtTime(v){const ms=msOf(v);if(v<=0)return"0 ms";if(ms<1000)return dec(ms,1)+" ms";return dec(ms/1000,ms<10000?2:1)+" s"}
+function parseTime(txt){const m=String(txt).trim().toLowerCase().replace(",",".").match(/^(\d*\.?\d+)\s*(ms|s)?$/);
+ if(!m)return null;return posOf(m[2]==="s"?+m[1]*1000:+m[1])}
+const FMT={plain:{show:v=>String(Math.round(v*10)/10),parse:x=>{const n=parseFloat(String(x).replace(",","."));return isNaN(n)?null:n}},
+ time:{show:fmtTime,parse:parseTime},
+ sus:{show:v=>String(Math.round(v*1.27)),parse:x=>{const n=parseFloat(String(x).replace(",","."));return isNaN(n)?null:n/1.27}}};
+function slider(parent,id,label,get,set,fmt){fmt=fmt||FMT.plain;
  const d=document.createElement("div");d.className="sl";
- d.innerHTML=`<label>${label}</label><input type="range" min="0" max="100" step="1"><input type="number" min="0" max="100" step="0.1">`;
- const [r,n]=d.querySelectorAll("input");r.value=n.value=get();
- const upd=v=>{v=Math.max(0,Math.min(100,+v||0));set(v);r.value=v;n.value=v;drawEnvs();soundChanged()};
- r.oninput=()=>upd(r.value);n.onchange=()=>upd(n.value);parent.appendChild(d)}
+ d.innerHTML=`<label>${label}</label><input type="range" min="0" max="100" step="0.1"><input type="text" class="val" spellcheck="false">`;
+ const [r,n]=d.querySelectorAll("input");r.value=get();n.value=fmt.show(get());
+ if(fmt===FMT.time)n.title=t("hint_time");if(fmt===FMT.sus)n.title=t("hint_sus");
+ const upd=v=>{v=Math.max(0,Math.min(100,+v||0));v=Math.round(v*100)/100;set(v);r.value=v;n.value=fmt.show(v);drawEnvs();soundChanged()};
+ r.oninput=()=>upd(r.value);n.onchange=()=>{const v=fmt.parse(n.value);if(v===null){n.value=fmt.show(get());return}upd(v)};
+ n.onkeydown=e=>{if(e.key==="Enter")n.blur()};parent.appendChild(d)}
 function buildSliders(){if(!SND)return;
  for(const [env,box] of [["amp","ampSl"],["fenv","fenvSl"]]){const p=$(box);p.innerHTML="";
-  ENV.forEach(k=>slider(p,env+k,t(k),()=>SND[env][k],v=>SND[env][k]=v))}
+  ENV.forEach(k=>slider(p,env+k,t(k),()=>SND[env][k],v=>SND[env][k]=v,k==="Sustain"?FMT.sus:FMT.time))}
  const f=$("filtSl");f.innerHTML="";FILT.forEach(k=>slider(f,"f"+k,t(k),()=>SND.filter[k],v=>SND.filter[k]=v));
  const bl=$("blendSl");bl.innerHTML="";slider(bl,"blend",t("blend"),()=>SND.blend,v=>SND.blend=v);
  $("serial").checked=!!SND.serial;

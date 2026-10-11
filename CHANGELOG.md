@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 – 2026-10-11
+- Envelope times as the MPC shows them. Measured on the MPC, Attack, Hold, Decay and Release follow
+  `time = 30000 ^ (value / 100)` ms (0 ms to 30 s); the app shows and accepts times (`250 ms`, `1,5 s`).
+- Sustain is shown 0–127, as on the MPC.
+- Built-in presets redone in real times (e.g. Pad: attack 600 ms, release 1.8 s). Built-in presets you never
+  changed are updated automatically; edited or own presets are kept.
+- Command line: `--amp` / `--fenv` accept times, e.g. `--amp 5ms,0,400ms,90,250ms`.
+
 ## 1.3.0 – 2026-10-10
 - Standalone desktop app for macOS and Windows (own window, no Python or browser needed): `desktop/app.py`
   with pywebview, packaged by PyInstaller (`desktop/keygroup_creator.spec`) and built automatically on GitHub

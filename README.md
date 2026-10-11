@@ -70,6 +70,10 @@ The built-in template is a keygroup saved by MPC 3.9. *Use another .xpm…* lets
 saved by your MPC (with your favourite FX, mod settings…): everything is kept except the keygroups,
 samples and the envelope/filter values you set.
 
+## Envelope times
+Measured on the MPC: Attack, Hold, Decay and Release use `time = 30000 ^ (value / 100)` ms — 10 → 2.8 ms,
+40 → 61.8 ms, 60 → 485.6 ms, 80 → 3.82 s, 100 → 30 s (0 is 0). Sustain is linear, 0–127 on the MPC.
+
 ## Notes
 - Filter mix starts at 0 (only filter 1 is heard; the MPC default 50 mixes both). Filters can run in series (`--serial`).
 - Filter types 0–18 and 29 are named; any other index can be typed in.

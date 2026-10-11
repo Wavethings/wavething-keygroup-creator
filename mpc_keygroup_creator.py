@@ -10,6 +10,7 @@ import base64
 import copy
 import gzip
 import json
+import math
 import os
 import random
 import re
@@ -18,7 +19,7 @@ import struct
 import sys
 from pathlib import Path
 
-VERSION = "1.3.0"
+VERSION = "1.4.0"
 AUDIO_EXT = {".wav", ".aif", ".aiff"}
 MAX_LAYERS = 8          # layers per keygroup in MPC 3.x
 MAX_KEYGROUPS = 128
@@ -375,8 +376,43 @@ def unique_names(names):
     return out
 
 
+# ----------------------------------------------------------------------------- envelope times
+# Measured on an MPC (3.x): Attack, Hold, Decay and Release all follow
+#   time = 30000 ** (value / 100) ms      (0 -> 0 ms, 10 -> 2.8 ms, 40 -> 61.8 ms, 60 -> 485.6 ms,
+#                                           80 -> 3.82 s, 100 -> 30 s)
+# Sustain is linear and the MPC shows it as 0-127.
+ENV_MAX_MS = 30000.0
+ENV_TIME_KEYS = ("Attack", "Hold", "Decay", "Release")
+
+
+def env_ms(value):
+    """Envelope knob (0-100) -> milliseconds, as the MPC shows it."""
+    value = float(value)
+    return 0.0 if value <= 0 else ENV_MAX_MS ** (min(value, 100.0) / 100.0)
+
+
+def env_value(ms):
+    """Milliseconds -> envelope knob (0-100). Below 1 ms is 0."""
+    ms = float(ms)
+    return 0.0 if ms < 1.0 else min(100.0, 100.0 * math.log(ms) / math.log(ENV_MAX_MS))
+
+
+def parse_env(text, key):
+    """CLI value: "250ms", "1.5s" (times, for A/H/D/R) or a plain 0-100 knob value."""
+    t = str(text).strip().lower().replace(",", ".")
+    m = re.fullmatch(r"([\d.]+)\s*(ms|s)", t)
+    if m and key in ENV_TIME_KEYS:
+        return round(env_value(float(m.group(1)) * (1000.0 if m.group(2) == "s" else 1.0)), 2)
+    return float(t)
+
+
+def T(ms):
+    """Preset helper: time in ms -> knob value."""
+    return round(env_value(ms), 1)
+
+
 # ----------------------------------------------------------------------------- sound presets
-def _snd(a, h, d, s, r, ftype=0, cut=100, res=0, env=0, fa=0, fh=0, fd=47, fs=100, fr=0,
+def _snd(a, h, d, s, r, ftype=0, cut=100, res=0, env=0, fa=0, fh=0, fd=4.7, fs=100, fr=0,
          key=0, fvel=0, vel=100):
     return {"amp": dict(zip(ENV_KEYS, (a, h, d, s, r))),
             "fenv": dict(zip(ENV_KEYS, (fa, fh, fd, fs, fr))),
@@ -386,14 +422,29 @@ def _snd(a, h, d, s, r, ftype=0, cut=100, res=0, env=0, fa=0, fh=0, fd=47, fs=10
 
 
 # Starting points, 0-100 like the MPC knobs. Edit them in the app and save your own.
+# Times are in ms (converted with the MPC curve above); sustain in % (100 = 127 on the MPC).
 BUILTIN_PRESETS = {
+    "Pad": _snd(T(600), 0, T(1500), 100, T(1800), 3, 70, 10, 15,
+                fa=T(800), fd=T(2000), fs=70, fr=T(1500), vel=60),
+    "Lead": _snd(T(5), 0, T(400), 90, T(250), 3, 80, 20, 20,
+                 fd=T(350), fs=40, fr=T(250), key=30, vel=80),
+    "Pluck": _snd(0, 0, T(450), 0, T(300), 3, 45, 15, 45,
+                  fd=T(250), fs=0, fr=T(250), fvel=20, vel=100),
+    "Keys": _snd(0, 0, T(2500), 50, T(400), vel=100),
+    "Bass": _snd(0, 0, T(600), 85, T(80), 3, 60, 10, 25, fd=T(200), fs=30, fr=T(80), vel=90),
+    "Strings": _snd(T(350), 0, T(1000), 100, T(900), 2, 85, 0, 0, vel=70),
+}
+# Built-in presets of 1.1-1.3 (knob values chosen before the MPC curve was measured). A preset still
+# exactly like this is upgraded to the new values above when presets.json is loaded.
+_LEGACY_BUILTIN = {
     "Pad": _snd(45, 0, 50, 100, 55, 3, 70, 10, 15, fa=50, fd=60, fs=70, fr=50, vel=60),
     "Lead": _snd(2, 0, 30, 90, 20, 3, 80, 20, 20, fd=35, fs=40, fr=20, key=30, vel=80),
     "Pluck": _snd(0, 0, 35, 0, 25, 3, 45, 15, 45, fd=30, fs=0, fr=25, fvel=20, vel=100),
-    "Keys": _snd(0, 0, 60, 60, 30, vel=100),
+    "Keys": _snd(0, 0, 60, 60, 30, fd=47, vel=100),
     "Bass": _snd(0, 0, 40, 85, 10, 3, 60, 10, 25, fd=25, fs=30, fr=10, vel=90),
-    "Strings": _snd(30, 0, 40, 100, 45, 2, 85, 0, 0, vel=70),
+    "Strings": _snd(30, 0, 40, 100, 45, 2, 85, 0, 0, fd=47, vel=70),
 }
+
 PRESET_WORDS = [("Pad", ("pad", "atmo", "ambient", "drone", "texture")),
                 ("Pluck", ("pluck", "pizz", "arp", "mallet", "bell")),
                 ("Bass", ("bass", "sub", "808")),
@@ -433,6 +484,9 @@ def load_presets():
     try:
         data = json.loads((app_dir() / "presets.json").read_text(encoding="utf-8"))
         if isinstance(data, dict):
+            for name, old in _LEGACY_BUILTIN.items():
+                if data.get(name) == old:
+                    data[name] = copy.deepcopy(BUILTIN_PRESETS[name])
             return data
     except (OSError, ValueError):
         pass
@@ -810,8 +864,9 @@ def main(argv=None):
                     help="how velocity values become layer ranges")
     ap.add_argument("-t", "--template", help="MPC 3.x keygroup .xpm to use as template")
     ap.add_argument("--hardlink", action="store_true", help="hard-link samples instead of copying")
-    ap.add_argument("--amp", help="amp envelope A,H,D,S,R (0-100), e.g. 0,0,20,100,30")
-    ap.add_argument("--fenv", help="filter envelope A,H,D,S,R (0-100)")
+    ap.add_argument("--amp", help="amp envelope A,H,D,S,R: times as 250ms / 1.5s (or 0-100 knob "
+                    "values), sustain 0-100, e.g. 5ms,0,400ms,90,250ms")
+    ap.add_argument("--fenv", help="filter envelope A,H,D,S,R, same format as --amp")
     ap.add_argument("--filter", help="filter TYPE,CUTOFF,RESONANCE,ENVAMOUNT (type index, rest 0-100)")
     ap.add_argument("--blend", type=float,
                     help="filter 1/2 mix, 0 = only filter 1 (default), 100 = only filter 2")
@@ -829,7 +884,7 @@ def main(argv=None):
         for key in ("amp", "fenv"):
             val = getattr(a, key)
             if val:
-                sound[key] = dict(zip(ENV_KEYS, (float(x) for x in val.split(","))))
+                sound[key] = {k: parse_env(x, k) for k, x in zip(ENV_KEYS, val.split(","))}
         if a.filter:
             parts = [float(x) for x in a.filter.split(",")]
             sound["filter"] = dict(zip(["type", "cutoff", "resonance", "envAmount"], parts))
