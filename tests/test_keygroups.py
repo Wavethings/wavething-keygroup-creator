@@ -1,6 +1,5 @@
 import copy
 import json
-import os
 import math
 import struct
 import sys
@@ -300,21 +299,16 @@ class EnvelopeCurve(unittest.TestCase):
         self.assertAlmostEqual(kc.env_ms(pad["Release"]), 1800, delta=30)
 
     def test_legacy_presets_upgraded(self):
-        with tempfile.TemporaryDirectory() as d:
-            old_home = os.environ.get("HOME")
-            os.environ["HOME"] = d
-            os.environ["XDG_CONFIG_HOME"] = str(Path(d) / ".config")
-            try:
-                mine = copy.deepcopy(kc._LEGACY_BUILTIN["Lead"])
-                mine["amp"]["Attack"] = 33
-                kc.save_presets(dict(kc._LEGACY_BUILTIN, **{"Lead": mine, "Own": {"amp": {}}}))
-                p = kc.load_presets()
-                self.assertEqual(p["Pad"], kc.BUILTIN_PRESETS["Pad"])    # untouched -> new values
-                self.assertEqual(p["Lead"]["amp"]["Attack"], 33)          # edited -> kept
-                self.assertIn("Own", p)
-            finally:
-                os.environ["HOME"] = old_home
-                os.environ.pop("XDG_CONFIG_HOME", None)
+        # use a temporary settings folder (works the same on macOS, Windows and Linux)
+        from unittest import mock
+        with tempfile.TemporaryDirectory() as d, mock.patch.object(kc, "app_dir", lambda: Path(d)):
+            mine = copy.deepcopy(kc._LEGACY_BUILTIN["Lead"])
+            mine["amp"]["Attack"] = 33
+            kc.save_presets(dict(kc._LEGACY_BUILTIN, **{"Lead": mine, "Own": {"amp": {}}}))
+            p = kc.load_presets()
+            self.assertEqual(p["Pad"], kc.BUILTIN_PRESETS["Pad"])    # untouched -> new values
+            self.assertEqual(p["Lead"]["amp"]["Attack"], 33)          # edited -> kept
+            self.assertIn("Own", p)
 
 
 class Desktop(unittest.TestCase):

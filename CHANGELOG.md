@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1 – 2026-10-11
+- Fix: the Windows desktop build stopped in the tests (a test restored the `HOME` variable, which does not exist
+  on Windows). The test now uses a temporary settings folder on every system.
+
 ## 1.4.0 – 2026-10-11
 - Envelope times as the MPC shows them. Measured on the MPC, Attack, Hold, Decay and Release follow
   `time = 30000 ^ (value / 100)` ms (0 ms to 30 s); the app shows and accepts times (`250 ms`, `1,5 s`).

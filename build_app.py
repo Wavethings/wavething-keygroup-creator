@@ -23,8 +23,8 @@ PLIST = """<?xml version="1.0" encoding="UTF-8"?>
 <key>CFBundleName</key><string>Wavethings Keygroup Creator</string>
 <key>CFBundleDisplayName</key><string>Wavethings Keygroup Creator</string>
 <key>CFBundleIdentifier</key><string>com.wavethings.keygroupcreator</string>
-<key>CFBundleVersion</key><string>1.4.0</string>
-<key>CFBundleShortVersionString</key><string>1.4.0</string>
+<key>CFBundleVersion</key><string>1.4.1</string>
+<key>CFBundleShortVersionString</key><string>1.4.1</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>CFBundleExecutable</key><string>KeygroupCreator</string>
 <key>CFBundleIconFile</key><string>icon</string>
