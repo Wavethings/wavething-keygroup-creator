@@ -20,7 +20,26 @@ The app is not signed with a paid Apple/Microsoft developer certificate, so the 
 - **Windows:** SmartScreen says "Windows protected your PC" → **More info** → **Run anyway**. Keep the
   `.exe` inside its folder (the folder holds the files it needs). Needs Windows 10 or 11.
 
+## How to use / Cómo se usa
+1. **Samples** – choose the folder and press *Scan*. If it holds several instruments (`Pad-C3…`, `Lead-C3…`, or
+   `Synth C3 Bender`, `Synth C3 Draw`…) each one becomes its own program in the list: rename it, give it a preset,
+   untick it to skip it, click it to see its samples. Check the detected notes and velocities; type over any of them.
+2. **Keygroups** – see the key map and the velocity layers; click a block to hear it.
+3. **Envelopes and filter** – for the selected instrument. Envelope times are shown as on the MPC (type `250 ms`
+   or `1,5 s`), Sustain 0–127, filter knobs 0–100. Start from a **preset** (Pad, Lead, Pluck, Keys, Bass,
+   Strings), adjust it and *Save preset…* under your own name.
+   Select several instruments (Cmd/Ctrl+click, Shift+click, *Select all*) to give them a preset or change them
+   together; with the link option on (default), a change also reaches every instrument that uses the same preset.
+4. **Program** – choose where to save and press *Create*. Copy the `.xpm`, its `_[ProgramData]` folder and the
+   `[Previews]` folder to the MPC.
+
 ## Run from source / Desde el código
+Needs Python 3.9+, nothing else:
+
+    python3 keygroup_creator_gui.py
+
+The interface opens in your browser. *Se abre la interfaz en el navegador.*
+
 ### Lighter macOS app (opens in your browser)
     python3 build_app.py
 Drag `Wavethings Keygroup Creator.app` to Applications. It quits when you close the browser tab.
@@ -30,7 +49,7 @@ Settings live in `~/Library/Application Support/Wavethings Keygroup Creator/` (w
     python3 mpc_keygroup_creator.py ~/Samples/MyLead -o ~/MPC/Programs --list      # only show the map
     python3 mpc_keygroup_creator.py ~/Samples/Logic -o ~/MPC/Programs --split --preset auto   # one per instrument
     python3 mpc_keygroup_creator.py ~/Samples/MyLead -o ~/MPC/Programs \
-        --amp 0,0,40,80,30 --filter 3,60,15,40 --fenv 0,0,50,0,30
+        --amp 5ms,0,400ms,90,250ms --filter 3,60,15,40 --fenv 0,0,300ms,0,250ms
 `-h` shows every option.
 
 ## Names it understands / Nombres que entiende

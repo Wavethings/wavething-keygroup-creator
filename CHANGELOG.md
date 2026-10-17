@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.5.0 – 2026-10-17
+- Linked sound editing: a change to the envelopes or filter now also goes to every instrument that uses the same
+  preset (on by default; option "Apply changes to every instrument that uses the same preset").
+- Select several instruments (Cmd/Ctrl+click, Shift+click, "Select all") and give them a preset or change their
+  sound together. Only the control you touch is copied, the rest of each instrument's sound is kept.
+- The sound panel says which instruments an edit will reach.
+
 ## 1.4.2 – 2026-10-17
 - Fix: instruments are now told apart by the text before **and after** the note. A folder with
   `Synth C2 Bender`, `Synth C2 Draw`… gives one program per instrument ("Synth Bender", "Synth Draw") instead of

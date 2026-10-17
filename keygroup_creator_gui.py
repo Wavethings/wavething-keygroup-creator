@@ -319,6 +319,13 @@ svg.env{width:100%;height:90px;display:block;background:#17191d;border-radius:6p
 .inst{display:grid;grid-template-columns:22px minmax(160px,1fr) 90px 150px minmax(150px,auto);gap:10px;align-items:center;
  background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;cursor:pointer}
 .inst.cur{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.inst.sel{border-color:var(--acc);background:color-mix(in srgb,var(--acc) 10%,var(--panel2))}
+.inst{user-select:none}
+.selbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:4px 0 6px}
+.selbar button{padding:3px 10px;font-size:12.5px}
+.selbar .hint{margin:0}
+.aff{color:var(--acc2);font-weight:600}
+.linkchk{width:100%;order:9}
 .inst.off{opacity:.5}
 .inst input[type=text]{width:100%;padding:4px 7px}
 .inst .cnt{color:var(--dim);font-size:12.5px}
@@ -352,6 +359,7 @@ svg.env{width:100%;height:90px;display:block;background:#17191d;border-radius:6p
 <label class="chk"><input type="checkbox" id="split"><span data-t="chk_split"></span></label>
 <span class="sp"></span><span class="badge" id="count"></span>
 </div>
+<div class="selbar" id="selbar" style="display:none"><button id="selAll" data-t="sel_all"></button><button id="selNone" data-t="sel_none"></button><span class="hint" data-t="hint_sel"></span></div>
 <div class="insts" id="insts"></div>
 <p class="sub" id="curSamples"></p>
 <div class="tablewrap"><table><thead><tr><th></th><th data-t="th_file"></th><th data-t="th_note"></th><th data-t="th_vel"></th><th data-t="th_src"></th><th data-t="th_loop"></th><th data-t="th_use"></th></tr></thead>
@@ -376,6 +384,7 @@ svg.env{width:100%;height:90px;display:block;background:#17191d;border-radius:6p
 <h2><span class="n">3</span><span data-t="sec_sound"></span></h2>
 <p class="sub" id="curSound"></p>
 <div class="presetbar"><label data-t="lbl_preset"></label><select id="presetSel"></select><span class="mod" id="presetMod"></span>
+<label class="chk linkchk"><input type="checkbox" id="link"><span data-t="chk_link"></span></label>
 <span class="sp"></span><button id="savePreset" data-t="btn_save_preset"></button><button id="renPreset" data-t="btn_ren_preset"></button><button id="delPreset" data-t="btn_del_preset"></button>
 <button id="applyAll" data-t="btn_apply_all"></button><button id="resetSound" data-t="btn_reset"></button><button id="restorePresets" data-t="btn_restore"></button></div>
 <div class="grid2">
@@ -412,7 +421,9 @@ svg.env{width:100%;height:90px;display:block;background:#17191d;border-radius:6p
 <div class="btns"><button id="dlgNo" data-t="btn_cancel"></button><button id="dlgOk" class="primary" data-t="btn_ok"></button></div></div></div>
 <script>
 const I18N={en:{
-chk_split:"One program per instrument",hint_time:"Type a time: 250 ms, 1.5 s (a plain number is ms)",hint_sus:"0–127, as on the MPC",btn_ok:"OK",btn_cancel:"Cancel",chk_preview:"Create a preview for the MPC browser ([Previews]/Name.xpm.ogg)",lbl_pvsec:"Seconds",
+chk_split:"One program per instrument",sel_all:"Select all",sel_none:"Only the current one",
+hint_sel:"Cmd/Ctrl+click or Shift+click to select several instruments. A preset or a change in the sound applies to all of them.",
+chk_link:"Apply changes to every instrument that uses the same preset",cur_sound_multi:"Sound of <b>{0}</b> and {1} more selected",affects:"· changes go to {0} instruments",hint_time:"Type a time: 250 ms, 1.5 s (a plain number is ms)",hint_sus:"0–127, as on the MPC",btn_ok:"OK",btn_cancel:"Cancel",chk_preview:"Create a preview for the MPC browser ([Previews]/Name.xpm.ogg)",lbl_pvsec:"Seconds",
 w_preview_failed:"Preview not created ({0})",cur_samples:"Samples of <b>{0}</b> — click an instrument above to see its samples, map and sound.",
 cur_sound:"Sound of <b>{0}</b>",no_preset:"— Template values —",lbl_preset:"Preset",modified:"● modified",btn_save_preset:"Save preset…",btn_ren_preset:"Rename…",btn_del_preset:"Delete",
 btn_apply_all:"Apply to all instruments",btn_restore:"Restore built-in presets",ask_preset:"Preset name (an existing name is overwritten):",ask_rename:"New name for “{0}”:",
@@ -441,7 +452,9 @@ w_no_note:"No root note, left out: {0}",w_no_vel:"No velocity in the name, used 
 e_no_samples:"No usable samples (each one needs a root note).",e_too_many_layers:"{0} different velocities: the MPC allows 8 layers at most.",e_too_many_keygroups:"{0} different notes: the MPC allows 128 keygroups at most.",
 ask_path:"Full path:",scanning:"Scanning…",err:"Error: {0}",tpl_bad:"That file is not an MPC 3.x keygroup program"},
 es:{
-chk_split:"Un programa por instrumento",hint_time:"Escribe un tiempo: 250 ms, 1,5 s (un número solo son ms)",hint_sus:"0–127, como en la MPC",btn_ok:"Aceptar",btn_cancel:"Cancelar",chk_preview:"Crear preescucha para el navegador de la MPC ([Previews]/Nombre.xpm.ogg)",lbl_pvsec:"Segundos",
+chk_split:"Un programa por instrumento",sel_all:"Seleccionar todos",sel_none:"Solo el actual",
+hint_sel:"Cmd/Ctrl+clic o Mayús+clic para seleccionar varios instrumentos. Un preset o un cambio en el sonido se aplica a todos ellos.",
+chk_link:"Aplicar los cambios a todos los instrumentos que usan el mismo preset",cur_sound_multi:"Sonido de <b>{0}</b> y {1} más seleccionados",affects:"· los cambios van a {0} instrumentos",hint_time:"Escribe un tiempo: 250 ms, 1,5 s (un número solo son ms)",hint_sus:"0–127, como en la MPC",btn_ok:"Aceptar",btn_cancel:"Cancelar",chk_preview:"Crear preescucha para el navegador de la MPC ([Previews]/Nombre.xpm.ogg)",lbl_pvsec:"Segundos",
 w_preview_failed:"No se pudo crear la preescucha ({0})",cur_samples:"Samples de <b>{0}</b> — haz clic en un instrumento de la lista para ver sus samples, su mapa y su sonido.",
 cur_sound:"Sonido de <b>{0}</b>",no_preset:"— Valores de la plantilla —",lbl_preset:"Preset",modified:"● modificado",btn_save_preset:"Guardar preset…",btn_ren_preset:"Renombrar…",btn_del_preset:"Borrar",
 btn_apply_all:"Aplicar a todos los instrumentos",btn_restore:"Restaurar presets integrados",ask_preset:"Nombre del preset (si ya existe, se sobrescribe):",ask_rename:"Nuevo nombre para «{0}»:",
@@ -477,9 +490,9 @@ const OFF={c3:2,c4:1};
 const ENV=["Attack","Hold","Decay","Sustain","Release"];
 const FILT=["cutoff","resonance","envAmount","keytrack","velocity"];
 let S={folder:"",recursive:false,octave:"c3",numbers:false,split:true,zones:"center",extend:true,vel:"auto",
- output:"",hardlink:false,loops:true,preview:true,previewSeconds:6,template:"",sound:null,lang:null};
+ output:"",hardlink:false,loops:true,link:true,preview:true,previewSeconds:6,template:"",sound:null,lang:null};
 let DEFAULTS=null,FILTERS=[],SAMPLES=[],MAP=null,LASTXPM="",PRESETS={},BUILTIN={};
-let INSTR=[],CUR=-1,SND=null;   /* instruments of the scan; SND = sound being edited */
+let INSTR=[],CUR=-1,SND=null,SEL=new Set(),ANCHOR=0;   /* instruments of the scan; SND = sound being edited */
 const clone=o=>JSON.parse(JSON.stringify(o));
 function merge(base,over){const r=clone(base);for(const k in over||{}){
  if(over[k]&&typeof over[k]==="object"&&!Array.isArray(over[k]))r[k]=Object.assign(r[k]||{},clone(over[k]));else r[k]=over[k]}return r}
@@ -515,22 +528,22 @@ function parseTime(txt){const m=String(txt).trim().toLowerCase().replace(",","."
 const FMT={plain:{show:v=>String(Math.round(v*10)/10),parse:x=>{const n=parseFloat(String(x).replace(",","."));return isNaN(n)?null:n}},
  time:{show:fmtTime,parse:parseTime},
  sus:{show:v=>String(Math.round(v*1.27)),parse:x=>{const n=parseFloat(String(x).replace(",","."));return isNaN(n)?null:n/1.27}}};
-function slider(parent,id,label,get,set,fmt){fmt=fmt||FMT.plain;
+function slider(parent,id,label,get,set,fmt,path){fmt=fmt||FMT.plain;
  const d=document.createElement("div");d.className="sl";
  d.innerHTML=`<label>${label}</label><input type="range" min="0" max="100" step="0.1"><input type="text" class="val" spellcheck="false">`;
  const [r,n]=d.querySelectorAll("input");r.value=get();n.value=fmt.show(get());
  if(fmt===FMT.time)n.title=t("hint_time");if(fmt===FMT.sus)n.title=t("hint_sus");
- const upd=v=>{v=Math.max(0,Math.min(100,+v||0));v=Math.round(v*100)/100;set(v);r.value=v;n.value=fmt.show(v);drawEnvs();soundChanged()};
+ const upd=v=>{v=Math.max(0,Math.min(100,+v||0));v=Math.round(v*100)/100;set(v);r.value=v;n.value=fmt.show(v);drawEnvs();soundChanged(path)};
  r.oninput=()=>upd(r.value);n.onchange=()=>{const v=fmt.parse(n.value);if(v===null){n.value=fmt.show(get());return}upd(v)};
  n.onkeydown=e=>{if(e.key==="Enter")n.blur()};parent.appendChild(d)}
 function buildSliders(){if(!SND)return;
  for(const [env,box] of [["amp","ampSl"],["fenv","fenvSl"]]){const p=$(box);p.innerHTML="";
-  ENV.forEach(k=>slider(p,env+k,t(k),()=>SND[env][k],v=>SND[env][k]=v,k==="Sustain"?FMT.sus:FMT.time))}
- const f=$("filtSl");f.innerHTML="";FILT.forEach(k=>slider(f,"f"+k,t(k),()=>SND.filter[k],v=>SND.filter[k]=v));
- const bl=$("blendSl");bl.innerHTML="";slider(bl,"blend",t("blend"),()=>SND.blend,v=>SND.blend=v);
+  ENV.forEach(k=>slider(p,env+k,t(k),()=>SND[env][k],v=>SND[env][k]=v,k==="Sustain"?FMT.sus:FMT.time,[env,k]))}
+ const f=$("filtSl");f.innerHTML="";FILT.forEach(k=>slider(f,"f"+k,t(k),()=>SND.filter[k],v=>SND.filter[k]=v,null,["filter",k]));
+ const bl=$("blendSl");bl.innerHTML="";slider(bl,"blend",t("blend"),()=>SND.blend,v=>SND.blend=v,null,["blend"]);
  $("serial").checked=!!SND.serial;
  $("velSensR").value=$("velSensN").value=SND.velSens;drawEnvs();soundChanged()}
-function velSens(v){v=Math.max(0,Math.min(100,+v||0));SND.velSens=v;$("velSensR").value=$("velSensN").value=v;soundChanged()}
+function velSens(v){v=Math.max(0,Math.min(100,+v||0));SND.velSens=v;$("velSensR").value=$("velSensN").value=v;soundChanged(["velSens"])}
 $("velSensR").oninput=e=>velSens(e.target.value);$("velSensN").onchange=e=>velSens(e.target.value);
 function fillFilterTypes(){const s=$("ftype");if(!SND)return;s.innerHTML="";
  FILTERS.forEach(([i,en,es])=>{const o=document.createElement("option");o.value=i;o.textContent=(LANG==="es"?es:en);s.appendChild(o)});
@@ -538,29 +551,44 @@ function fillFilterTypes(){const s=$("ftype");if(!SND)return;s.innerHTML="";
  const known=FILTERS.some(f=>f[0]===SND.filter.type);s.value=known?SND.filter.type:"other";
  $("fcustomRow").style.display=known?"none":"";$("fcustom").value=SND.filter.type}
 $("ftype").onchange=e=>{if(e.target.value==="other"){$("fcustomRow").style.display="";$("fcustom").focus()}
- else{$("fcustomRow").style.display="none";SND.filter.type=+e.target.value;soundChanged()}};
-$("fcustom").onchange=e=>{SND.filter.type=Math.max(0,parseInt(e.target.value)||0);soundChanged()};
+ else{$("fcustomRow").style.display="none";SND.filter.type=+e.target.value;soundChanged(["filter","type"])}};
+$("fcustom").onchange=e=>{SND.filter.type=Math.max(0,parseInt(e.target.value)||0);soundChanged(["filter","type"])};
 function drawEnv(svg,e){const W=400,H=90,pad=6,seg=W/5-6;
  const x1=pad+e.Attack/100*seg,x2=x1+e.Hold/100*seg,x3=x2+e.Decay/100*seg+2,x4=x3+seg*.9,x5=x4+e.Release/100*seg+2;
  const top=pad,bot=H-pad,sy=bot-(bot-top)*e.Sustain/100;
  const d=`M${pad},${bot} L${x1},${top} L${x2},${top} L${x3},${sy} L${x4},${sy} L${x5},${bot}`;
  svg.innerHTML=`<path d="${d} Z" fill="rgba(255,90,54,.18)"/><path d="${d}" fill="none" stroke="#ff5a36" stroke-width="2" vector-effect="non-scaling-stroke"/>`}
 function drawEnvs(){if(!SND)return;drawEnv($("ampSvg"),SND.amp);drawEnv($("fenvSvg"),SND.fenv)}
-$("serial").onchange=e=>{SND.serial=e.target.checked;soundChanged()};
+$("serial").onchange=e=>{SND.serial=e.target.checked;soundChanged(["serial"])};
 function setSound(o){/* replace the sound being edited, keeping the same object */
  for(const k of Object.keys(SND))delete SND[k];Object.assign(SND,clone(o));buildSliders();fillFilterTypes()}
-$("resetSound").onclick=()=>{const i=INSTR[CUR];if(i)i.preset=null;setSound(DEFAULTS);renderInst();renderPresetBar()};
+$("resetSound").onclick=()=>usePreset("");
 
 /* ---------- presets ---------- */
-function soundChanged(){if(INSTR.length<=1){S.sound=SND;S.preset=INSTR[CUR]?INSTR[CUR].preset:S.preset}save();renderPresetBar();if(INSTR[CUR])renderInst()}
+/* who else receives an edit: the selected instruments and, with "link" on, every instrument
+   that uses the same preset as the one being edited */
+function targets(){const i=INSTR[CUR];if(!i)return[];const out=new Set();
+ SEL.forEach(k=>{if(k!==CUR&&INSTR[k])out.add(INSTR[k])});
+ if(S.link!==false&&i.preset)INSTR.forEach(x=>{if(x!==i&&x.preset===i.preset)out.add(x)});
+ return[...out]}
+function setPath(o,path,v){let x=o;for(let j=0;j<path.length-1;j++){x[path[j]]=x[path[j]]||{};x=x[path[j]]}x[path[path.length-1]]=v}
+function getPath(o,path){return path.reduce((x,k)=>x==null?x:x[k],o)}
+function soundChanged(path){
+ if(path){const v=getPath(SND,path);targets().forEach(x=>setPath(x.sound,path,clone(v)))}
+ if(INSTR.length<=1){S.sound=SND;S.preset=INSTR[CUR]?INSTR[CUR].preset:S.preset}save();renderPresetBar();if(INSTR[CUR])renderInst()}
 function presetOptions(sel,value){sel.innerHTML="";const o=document.createElement("option");o.value="";o.textContent=t("no_preset");sel.appendChild(o);
  Object.keys(PRESETS).sort((a,b)=>a.localeCompare(b)).forEach(n=>{const o=document.createElement("option");o.value=n;o.textContent=n;sel.appendChild(o)});sel.value=value||""}
 function renderPresetBar(){const i=INSTR[CUR];const name=i?i.preset:S.preset;presetOptions($("presetSel"),name);
  const base=presetSound(name);$("presetMod").textContent=SND&&!eq(merge(DEFAULTS,SND),base)?t("modified"):"";
  const has=!!(name&&PRESETS[name]);$("delPreset").disabled=!has;$("renPreset").disabled=!has;
  $("applyAll").disabled=INSTR.length<2;
- $("curSound").innerHTML=i?t("cur_sound",esc(i.name)):""}
-function usePreset(name){const i=INSTR[CUR];if(i)i.preset=name||null;else S.preset=name||null;setSound(presetSound(name));renderInst();renderPresetBar();save()}
+ if(!i){$("curSound").innerHTML="";return}
+ const nsel=[...SEL].filter(k=>INSTR[k]).length,nt=targets().length;
+ let h=nsel>1?t("cur_sound_multi",esc(i.name),nsel-1):t("cur_sound",esc(i.name));
+ if(nt)h+=` <span class="aff">${t("affects",nt+1)}</span>`;$("curSound").innerHTML=h}
+function usePreset(name){const i=INSTR[CUR];name=name||null;
+ if(i){[...SEL].forEach(k=>{const x=INSTR[k];if(x&&x!==i){x.preset=name;x.sound=presetSound(name)}});i.preset=name}else S.preset=name;
+ setSound(presetSound(name));renderInst();renderPresetBar();save()}
 $("presetSel").onchange=e=>usePreset(e.target.value);
 function savePresets(){call("/api/presets",{presets:PRESETS}).catch(e=>tell(t("err",e.message)))}
 $("savePreset").onclick=async()=>{const i=INSTR[CUR];const cur=i?i.preset:S.preset;let n=await askText(t("ask_preset"),cur||"");
@@ -592,26 +620,34 @@ async function choose(kind,target,after){try{const r=await call("/api/pick",{kin
  catch(e){tell(t("err",e.message))}}
 async function scan(){if(!S.folder)return;$("count").textContent=t("scanning");
  try{const r=await call("/api/scan",{folder:S.folder,recursive:S.recursive,octave:S.octave,numbers:S.numbers,split:S.split,presets:PRESETS});
-  INSTR=r.groups.map(g=>({name:g.name,on:true,samples:g.samples,preset:g.preset,sound:presetSound(g.preset),status:null}));
+  SEL=new Set();INSTR=r.groups.map(g=>({name:g.name,on:true,samples:g.samples,preset:g.preset,sound:presetSound(g.preset),status:null}));
   if(INSTR.length===1&&!INSTR[0].preset&&S.sound){INSTR[0].sound=merge(DEFAULTS,S.sound);INSTR[0].preset=S.preset||null}
   await Promise.all(INSTR.map(statusOf));selectInst(INSTR.length?0:-1)}
  catch(e){INSTR=[];selectInst(-1);$("count").textContent=t("err",e.message)}}
 async function statusOf(i){try{const m=await call("/api/map",{samples:i.samples,zones:S.zones,extend:S.extend,vel:S.vel});i.status=m}catch(e){i.status={keygroups:[],errors:[["err",e.message]],warnings:[]}}}
-function selectInst(k){CUR=k;const i=INSTR[k];SAMPLES=i?i.samples:[];SND=i?i.sound:(S.sound=merge(DEFAULTS,S.sound||{}));
+function selectInst(k,keepSel){CUR=k;if(!keepSel)SEL=new Set(k>=0?[k]:[]);const i=INSTR[k];SAMPLES=i?i.samples:[];SND=i?i.sound:(S.sound=merge(DEFAULTS,S.sound||{}));
  buildSliders();fillFilterTypes();renderRows();renderInst();renderPresetBar();MAP=i?i.status:null;renderMap();refreshMap()}
 function renderInst(){const box=$("insts");box.innerHTML="";const n=INSTR.length;
  $("count").textContent=n?(n>1?t("n_inst",n)+" · ":"")+t("count",INSTR.reduce((a,i)=>a+i.samples.length,0)):"";
  $("curSamples").innerHTML=INSTR[CUR]&&n>1?t("cur_samples",esc(INSTR[CUR].name)):"";
- INSTR.forEach((i,k)=>{const d=document.createElement("div");d.className="inst"+(k===CUR?" cur":"")+(i.on?"":" off");
+ INSTR.forEach((i,k)=>{const d=document.createElement("div");d.className="inst"+(k===CUR?" cur":SEL.has(k)?" sel":"")+(i.on?"":" off");
   const st=i.status;let stx="",cls="";if(st){if(st.errors.length){stx=t("st_err");cls="e"}else{const nl=Math.max(...st.keygroups.map(x=>x.layers.length));stx=t("st_ok",st.keygroups.length,nl);cls="ok"}}
   d.innerHTML=`<input type="checkbox" ${i.on?"checked":""}><input type="text" spellcheck="false"><span class="cnt">${t("inst_count",i.samples.length)}</span><select></select><span class="st ${cls}">${stx}</span>`;
   const [cb,nm]=d.querySelectorAll("input");const sel=d.querySelector("select");nm.value=i.name;
   presetOptions(sel,i.preset);const mod=!eq(merge(DEFAULTS,i.sound),presetSound(i.preset));if(mod)sel.options[sel.selectedIndex].textContent+=" ●";
   cb.onclick=e=>e.stopPropagation();cb.onchange=()=>{i.on=cb.checked;d.classList.toggle("off",!i.on);goLabel()};
   nm.onclick=e=>e.stopPropagation();nm.oninput=()=>{i.name=nm.value;if(k===CUR){renderPresetBar();$("curSamples").innerHTML=n>1?t("cur_samples",esc(i.name)):""}};
-  sel.onclick=e=>e.stopPropagation();sel.onchange=()=>{i.preset=sel.value||null;i.sound=presetSound(i.preset);if(k===CUR){SND=i.sound;buildSliders();fillFilterTypes();renderPresetBar()}renderInst()};
-  d.onclick=()=>{if(k!==CUR)selectInst(k)};box.appendChild(d)});
- box.style.display=n?"":"none";goLabel()}
+  sel.onclick=e=>e.stopPropagation();sel.onchange=()=>{const name=sel.value||null;
+   const group=SEL.has(k)&&SEL.size>1?[...SEL]:[k];   // a selected row changes the whole selection
+   group.forEach(j=>{const x=INSTR[j];if(!x)return;x.preset=name;if(j===CUR)setSound(presetSound(name));else x.sound=presetSound(name)});
+   renderInst();renderPresetBar();save()};
+  d.onclick=e=>{
+   if(e.metaKey||e.ctrlKey){if(SEL.has(k)&&SEL.size>1){SEL.delete(k);if(k===CUR)selectInst([...SEL][0],true);else{renderInst();renderPresetBar()}}
+    else{SEL.add(k);ANCHOR=k;selectInst(k,true)}return}
+   if(e.shiftKey){const a=Math.min(ANCHOR,k),b=Math.max(ANCHOR,k);for(let j=a;j<=b;j++)SEL.add(j);selectInst(k,true);return}
+   ANCHOR=k;if(k!==CUR||SEL.size>1)selectInst(k)};
+  box.appendChild(d)});
+ box.style.display=n?"":"none";$("selbar").style.display=n>1?"":"none";goLabel()}
 function goLabel(){const n=INSTR.filter(i=>i.on).length;$("go").textContent=n>1?t("btn_go_n",n):t("btn_go")}
 function renderRows(){const tb=$("rows");
  if(!SAMPLES.length){tb.innerHTML=`<tr><td colspan="7" class="empty">${t("no_samples")}</td></tr>`;return}
@@ -699,7 +735,9 @@ $("reveal").onclick=()=>LASTXPM&&call("/api/reveal",{path:LASTXPM});
  bindOpt("folder","folder","change",scan);bindOpt("recursive","recursive","change",scan);
  bindOpt("octave","octave","change",scan);bindOpt("numbers","numbers","change",scan);bindOpt("split","split","change",scan);
  bindOpt("extend","extend","change",()=>refreshMap(true));bindOpt("velmode","vel","change",()=>refreshMap(true));
- bindOpt("output","output","change");bindOpt("hardlink","hardlink");bindOpt("loops","loops");bindOpt("preview","preview");bindOpt("previewSeconds","previewSeconds");
+ bindOpt("output","output","change");bindOpt("hardlink","hardlink");bindOpt("loops","loops");bindOpt("link","link","change",renderPresetBar);
+ $("selAll").onclick=()=>{INSTR.forEach((_,j)=>SEL.add(j));renderInst();renderPresetBar()};
+ $("selNone").onclick=()=>{SEL=new Set([CUR]);renderInst();renderPresetBar()};bindOpt("preview","preview");bindOpt("previewSeconds","previewSeconds");
  seg("zones","zones");
  $("pickFolder").onclick=()=>choose("folder","folder",scan);$("scan").onclick=scan;
  $("pickOut").onclick=()=>choose("folder","output");

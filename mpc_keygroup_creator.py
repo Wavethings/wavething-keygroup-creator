@@ -19,7 +19,7 @@ import struct
 import sys
 from pathlib import Path
 
-VERSION = "1.4.2"
+VERSION = "1.5.0"
 AUDIO_EXT = {".wav", ".aif", ".aiff"}
 MAX_LAYERS = 8          # layers per keygroup in MPC 3.x
 MAX_KEYGROUPS = 128
