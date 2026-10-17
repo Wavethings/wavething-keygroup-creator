@@ -19,7 +19,7 @@ import struct
 import sys
 from pathlib import Path
 
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 AUDIO_EXT = {".wav", ".aif", ".aiff"}
 MAX_LAYERS = 8          # layers per keygroup in MPC 3.x
 MAX_KEYGROUPS = 128
@@ -328,34 +328,59 @@ def guess_name(samples, folder=None):
     return Path(folder).name if folder else "Keygroup"
 
 
-def instrument_name(stem):
-    """Instrument part of a sample name: what comes before the note / velocity token
-    ("Analog_Pad-C3-V127-E36P" -> "Analog_Pad"). None if the name has no such token."""
+SEPS = " -_."
+_ID_RE = re.compile(r"[A-Z0-9]{4}")     # random take id of Logic's Auto Sampler / MPC ("FDW9")
+
+
+def name_parts(stem):
+    """Split a sample name around its note / velocity tokens:
+    "Synth C2 Bender" -> ("Synth", "Bender"), "Pad-C3-V127-E36P" -> ("Pad", "E36P").
+    None if the name has no such token."""
     parsed = parse_name(stem)
-    spans = [sp for sp in (parsed["note_span"], parsed["vel_span"]) if sp]
+    spans = sorted(sp for sp in (parsed["note_span"], parsed["vel_span"]) if sp)
     if not spans:
         return None
-    name = stem[:min(sp[0] for sp in spans)].strip(" -_.")
-    if not name:    # note first ("C3 Piano"): keep the rest without the tokens
-        rest = stem
-        for a, b in sorted(spans, reverse=True):
-            rest = rest[:a] + " " + rest[b:]
-        name = re.sub(r"[\s_\-.]+", " ", rest).strip()
-    return name or None
+    prefix = stem[:spans[0][0]].strip(SEPS)
+    rest = [stem[a:b] for (_, a), (b, _) in zip(spans, spans[1:])] + [stem[spans[-1][1]:]]
+    suffix = re.sub(r"[\s_\-.]+", " ", " ".join(rest)).strip()
+    return prefix, suffix
+
+
+def _join(prefix, suffix):
+    return " ".join(x for x in (prefix, suffix) if x)
+
+
+def instrument_name(stem):
+    """Instrument name of one sample: the name without its note / velocity tokens.
+    (A random take id after the tokens is not removed here; group_samples() handles it.)"""
+    parts = name_parts(stem)
+    if parts is None:
+        return None
+    return _join(*parts) or None
 
 
 def group_samples(samples, fallback="Keygroup"):
-    """Split a scan into instruments by name prefix. Samples without a note token join the
-    instrument whose name starts their own name, or get their own group.
-    Returns [(name, [samples])] sorted by name."""
-    groups = {}
-    loose = []
+    """Split a scan into instruments by name. The text before and after the note counts:
+    "Synth C2 Bender" and "Synth C2 Draw" are two instruments ("Synth Bender", "Synth Draw").
+    A text after the note that changes with every file (the random id of Logic's Auto Sampler,
+    "Lead-C2-V127-FDW9") is ignored. Samples without a note token join the instrument whose
+    name starts their own name, or get their own group. Returns [(name, [samples])] by name."""
+    by_prefix, loose = {}, []
     for s in samples:
-        n = instrument_name(s["stem"])
-        if n is None:
+        parts = name_parts(s["stem"])
+        if parts is None:
             loose.append(s)
-        else:
-            groups.setdefault(n, []).append(s)
+            continue
+        prefix, suffix = parts
+        by_prefix.setdefault(prefix, {}).setdefault(suffix, []).append(s)
+    groups = {}
+    for prefix, by_suffix in by_prefix.items():
+        named = {k: v for k, v in by_suffix.items() if k}
+        ids = (len(named) > 1 and all(len(v) == 1 for v in named.values())) or \
+              (named and all(_ID_RE.fullmatch(k) for k in named))
+        for suffix, items in by_suffix.items():
+            name = prefix if ids else _join(prefix, suffix)
+            groups.setdefault(name or fallback, []).extend(items)
     for s in loose:
         low = s["stem"].lower()
         match = max((n for n in groups if low.startswith(n.lower())), key=len, default=None)

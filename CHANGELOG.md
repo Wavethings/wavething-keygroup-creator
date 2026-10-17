@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.2 – 2026-10-17
+- Fix: instruments are now told apart by the text before **and after** the note. A folder with
+  `Synth C2 Bender`, `Synth C2 Draw`… gives one program per instrument ("Synth Bender", "Synth Draw") instead of
+  a single "Synth". A text after the note that changes with every file (the random id of Logic's Auto Sampler,
+  `Lead-C2-V127-FDW9`) is still ignored.
+
 ## 1.4.1 – 2026-10-11
 - Fix: the Windows desktop build stopped in the tests (a test restored the `HOME` variable, which does not exist
   on Windows). The test now uses a temporary settings folder on every system.

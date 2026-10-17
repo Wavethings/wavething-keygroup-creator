@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(SPECPATH).resolve().parent
 APP_NAME = "Wavethings Keygroup Creator"
-VERSION = "1.4.1"
+VERSION = "1.4.2"
 
 if sys.platform == "darwin":
     platform_mod, icon = "webview.platforms.cocoa", "icon.icns"

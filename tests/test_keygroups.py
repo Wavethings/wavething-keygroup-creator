@@ -71,7 +71,8 @@ class Names(unittest.TestCase):
 
 class Instruments(unittest.TestCase):
     def test_instrument_name(self):
-        self.assertEqual(kc.instrument_name("Analog_Pad-C3-V127-E36P"), "Analog_Pad")
+        self.assertEqual(kc.name_parts("Analog_Pad-C3-V127-E36P"), ("Analog_Pad", "E36P"))
+        self.assertEqual(kc.instrument_name("Synth C2 Bender"), "Synth Bender")
         self.assertEqual(kc.instrument_name("C3 Piano v64"), "Piano")
         self.assertIsNone(kc.instrument_name("Noise"))
 
@@ -81,6 +82,27 @@ class Instruments(unittest.TestCase):
         g = dict(kc.group_samples(smp))
         self.assertEqual(sorted(g), ["Lead", "Other", "Pad"])
         self.assertEqual(len(g["Pad"]), 3)
+
+    def test_group_name_after_note(self):
+        # a folder exported with the instrument name on both sides of the note
+        notes = ["C2", "F#2", "C3", "F#3", "C4", "F#4"]
+        stems = [f"Chord {n} Prophetic" for n in notes] + [f"Perc {n} Prophetic" for n in notes]
+        for inst in ("Bender", "Blazer", "Draw"):
+            stems += [f"Synth {n} {inst}" for n in notes]
+        stems += [f"Synth {n} Modul" for n in ("C4", "F#4")]
+        g = dict(kc.group_samples([{"stem": x} for x in stems]))
+        self.assertEqual(sorted(g), ["Chord Prophetic", "Perc Prophetic", "Synth Bender",
+                                     "Synth Blazer", "Synth Draw", "Synth Modul"])
+        self.assertEqual(len(g["Synth Draw"]), 6)
+        self.assertEqual(len(g["Synth Modul"]), 2)
+
+    def test_group_random_take_ids(self):
+        # Logic's Auto Sampler: a different random id after the velocity in every file
+        ids = ["FDW9", "DKJN", "DA7T", "UNOY"]
+        stems = [f"Dread Lead-{n}-V127-{i}" for n, i in zip(["C2", "F#2", "C3", "F#3"], ids)]
+        self.assertEqual([n for n, _ in kc.group_samples([{"stem": x} for x in stems])], ["Dread Lead"])
+        self.assertEqual([n for n, _ in kc.group_samples([{"stem": "Analog_Pad-C3-V127-E36P"}])],
+                         ["Analog_Pad"])
 
     def test_unique_names(self):
         self.assertEqual(kc.unique_names(["Pad", "pad", "A/B"]), ["Pad", "pad (2)", "A_B"])
